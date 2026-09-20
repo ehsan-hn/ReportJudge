@@ -4,8 +4,9 @@ Enforces strict input validation boundaries at the API gateway layer
 and serializes domain evaluation results into OpenAPI-compliant JSON schemas.
 """
 
+from typing import Any
 from uuid import UUID, uuid4
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.judgment.rubric import MissingInfoCode, SeverityLevel
 
@@ -52,6 +53,15 @@ class IncidentInput(BaseModel):
         description="Troubleshooting, rollbacks, or mitigation steps performed.",
         json_schema_extra={"example": "Scaled pods to 12; no resolution."},
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_actions_alias(cls, data: Any) -> Any:
+        """Support 'actions' as a valid alias for 'actions_taken'."""
+        if isinstance(data, dict) and "actions" in data and "actions_taken" not in data:
+            data = dict(data)
+            data["actions_taken"] = data.pop("actions")
+        return data
 
 
 # ==============================================================================

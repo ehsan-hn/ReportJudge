@@ -18,6 +18,7 @@ from app.judgment.scoring import (
 from app.judgment.service import AssessmentService
 
 router = APIRouter(prefix="/v1", tags=["Incidents"])
+api_v1_router = router
 
 
 @router.post(
