@@ -42,6 +42,11 @@ from app.judgment.scoring import (
     compute_quality_score,
     compute_severity,
 )
+from app.judgment.guardrails import (
+    UNTRUSTED_INSTRUCTION_NOTICE,
+    sanitize_text,
+    wrap_untrusted_input,
+)
 
 __all__ = [
     "RUBRIC_VERSION",
@@ -72,4 +77,7 @@ __all__ = [
     "MIN_CONFIDENCE",
     "MAX_CONFIDENCE",
     "compute_confidence",
+    "UNTRUSTED_INSTRUCTION_NOTICE",
+    "sanitize_text",
+    "wrap_untrusted_input",
 ]
