@@ -26,6 +26,12 @@ from app.judgment.rubric import (
     SeverityLevel,
     TimeSensitivity,
 )
+from app.judgment.scoring import (
+    FLOOR_DATA_LOSS_OR_BREACH_SEV1,
+    FLOOR_TOTAL_OUTAGE_SEV2,
+    compute_quality_score,
+    compute_severity,
+)
 
 __all__ = [
     "RUBRIC_VERSION",
@@ -44,4 +50,8 @@ __all__ = [
     "DimensionSignal",
     "SeveritySignals",
     "LLMAssessment",
+    "FLOOR_DATA_LOSS_OR_BREACH_SEV1",
+    "FLOOR_TOTAL_OUTAGE_SEV2",
+    "compute_quality_score",
+    "compute_severity",
 ]
