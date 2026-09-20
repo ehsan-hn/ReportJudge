@@ -26,6 +26,16 @@ from app.judgment.rubric import (
     SeverityLevel,
     TimeSensitivity,
 )
+from app.judgment.confidence import (
+    BAND_HIGH,
+    BAND_LOW,
+    BAND_MEDIUM,
+    LIMITING_REASON_GAPS,
+    LIMITING_REASON_WEAK_EVIDENCE,
+    MAX_CONFIDENCE,
+    MIN_CONFIDENCE,
+    compute_confidence,
+)
 from app.judgment.scoring import (
     FLOOR_DATA_LOSS_OR_BREACH_SEV1,
     FLOOR_TOTAL_OUTAGE_SEV2,
@@ -54,4 +64,12 @@ __all__ = [
     "FLOOR_TOTAL_OUTAGE_SEV2",
     "compute_quality_score",
     "compute_severity",
+    "LIMITING_REASON_WEAK_EVIDENCE",
+    "LIMITING_REASON_GAPS",
+    "BAND_LOW",
+    "BAND_MEDIUM",
+    "BAND_HIGH",
+    "MIN_CONFIDENCE",
+    "MAX_CONFIDENCE",
+    "compute_confidence",
 ]
