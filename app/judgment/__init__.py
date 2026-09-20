@@ -51,6 +51,11 @@ from app.judgment.prompts import (
     SYSTEM_PROMPT,
     format_assessment_prompt,
 )
+from app.judgment.service import (
+    AssessmentResult,
+    AssessmentService,
+    AttrDict,
+)
 
 __all__ = [
     "RUBRIC_VERSION",
@@ -86,4 +91,7 @@ __all__ = [
     "wrap_untrusted_input",
     "SYSTEM_PROMPT",
     "format_assessment_prompt",
+    "AssessmentService",
+    "AssessmentResult",
+    "AttrDict",
 ]
