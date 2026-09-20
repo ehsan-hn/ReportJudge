@@ -8,6 +8,8 @@ Provides dual-mode execution for testing and local development:
 Strict Architectural Rule: ZERO framework (FastAPI/Starlette) or HTTP dependencies.
 """
 
+from typing import Any
+
 from ..contracts import DimensionSignal, LLMAssessment, SeveritySignals
 from ..rubric import MissingInfoCode, QualityDimension
 from .base import LLMClient
@@ -16,12 +18,17 @@ from .base import LLMClient
 class FakeLLMClient(LLMClient):
     """Offline mock LLM client with scripted FIFO queue and heuristic fallback."""
 
-    def __init__(self, scripted_responses: list[LLMAssessment] | None = None) -> None:
+    def __init__(
+        self,
+        scripted_responses: list[LLMAssessment] | None = None,
+        **kwargs: Any,
+    ) -> None:
         """Initialize FakeLLMClient with optional scripted responses.
 
         Args:
             scripted_responses: Optional list of pre-canned LLMAssessment responses
                 that will be popped and returned FIFO.
+            **kwargs: Ignored keyword arguments for compatibility with provider factory.
         """
         self._script: list[LLMAssessment] = (
             list(scripted_responses) if scripted_responses is not None else []
