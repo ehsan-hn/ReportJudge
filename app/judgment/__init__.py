@@ -4,6 +4,11 @@ This package contains pure business logic, rubric definitions, domain models,
 and domain exceptions with ZERO framework (FastAPI/Starlette) or HTTP dependencies.
 """
 
+from app.judgment.contracts import (
+    DimensionSignal,
+    LLMAssessment,
+    SeveritySignals,
+)
 from app.judgment.exceptions import (
     IncidentJudgmentError,
     LLMProviderError,
@@ -36,4 +41,7 @@ __all__ = [
     "LLMProviderError",
     "SchemaValidationError",
     "UntrustedInputError",
+    "DimensionSignal",
+    "SeveritySignals",
+    "LLMAssessment",
 ]
