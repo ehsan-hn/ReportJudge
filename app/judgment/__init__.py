@@ -47,6 +47,10 @@ from app.judgment.guardrails import (
     sanitize_text,
     wrap_untrusted_input,
 )
+from app.judgment.prompts import (
+    SYSTEM_PROMPT,
+    format_assessment_prompt,
+)
 
 __all__ = [
     "RUBRIC_VERSION",
@@ -80,4 +84,6 @@ __all__ = [
     "UNTRUSTED_INSTRUCTION_NOTICE",
     "sanitize_text",
     "wrap_untrusted_input",
+    "SYSTEM_PROMPT",
+    "format_assessment_prompt",
 ]
