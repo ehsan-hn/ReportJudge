@@ -100,7 +100,7 @@ def compute_severity(
     if (
         signals.impact_scope >= ImpactScope.ALL_USERS
         and signals.business_criticality >= BusinessCriticality.CORE_FLOW_IMPAIRED
-        and level in (SeverityLevel.SEV3, SeverityLevel.SEV4)
+        and level in (SeverityLevel.SEV2, SeverityLevel.SEV3, SeverityLevel.SEV4)
     ):
         level = SeverityLevel.SEV2
         applied_floors.append(FLOOR_TOTAL_OUTAGE_SEV2)
