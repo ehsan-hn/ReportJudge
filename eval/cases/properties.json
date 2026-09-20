@@ -1,0 +1,73 @@
+[
+  {
+    "property_id": "monotonicity_evidence",
+    "name": "Confidence Monotonicity under Telemetry Evidence Enrichment",
+    "description": "Adding empirical telemetry and monitoring alerts to an incident report must never decrease calibrated confidence.",
+    "invariant_type": "monotonicity_evidence",
+    "assertion": "strong.confidence >= weak.confidence",
+    "cases": {
+      "weak": {
+        "title": "Checkout latency issues",
+        "description": "Users are reporting that the checkout page is spinning and taking a very long time to complete purchases.",
+        "impact": "Customers are delayed when trying to pay.",
+        "evidence": null,
+        "actions_taken": "Investigating payment gateway."
+      },
+      "strong": {
+        "title": "Checkout latency issues",
+        "description": "Users are reporting that the checkout page is spinning and taking a very long time to complete purchases.",
+        "impact": "Customers are delayed when trying to pay.",
+        "evidence": "Datadog alert: 504 Gateway Timeout on /api/v1/checkout; error rate spiked to 22% with p99 latency at 6800ms.",
+        "actions_taken": "Investigating payment gateway."
+      }
+    }
+  },
+  {
+    "property_id": "monotonicity_field_coverage",
+    "name": "Confidence Monotonicity under Field Coverage Expansion",
+    "description": "Providing optional fields (impact, evidence, actions) must never decrease calibrated confidence compared to minimal title/description input.",
+    "invariant_type": "monotonicity_field_coverage",
+    "assertion": "complete.confidence >= minimal.confidence",
+    "cases": {
+      "minimal": {
+        "title": "API Gateway rate limiter rejecting valid traffic",
+        "description": "The API gateway is throttling valid customer requests unexpectedly with HTTP 429 Too Many Requests.",
+        "impact": null,
+        "evidence": null,
+        "actions_taken": null
+      },
+      "complete": {
+        "title": "API Gateway rate limiter rejecting valid traffic",
+        "description": "The API gateway is throttling valid customer requests unexpectedly with HTTP 429 Too Many Requests.",
+        "impact": "Enterprise tier clients unable to sync catalog data; approximately 2,000 requests per minute dropped.",
+        "evidence": "Envoy access logs show local_rate_limited filter triggering; Redis token bucket counter exceeded threshold.",
+        "actions_taken": "Temporarily raised Redis rate limit quota to 5000 rps and deployed hotfix."
+      }
+    }
+  },
+  {
+    "property_id": "breach_policy_floor_invariance",
+    "name": "Severity Policy Floor Invariance under Phrasing Variations",
+    "description": "Any incident containing confirmed credential exposure must deterministically evaluate to SEV1 regardless of phrasing or tone.",
+    "invariant_type": "policy_floor_invariance",
+    "assertion": "all_variants.severity == 'SEV1'",
+    "expected_severity": "SEV1",
+    "expected_floor": "FLOOR_DATA_LOSS_OR_BREACH_SEV1",
+    "cases": {
+      "mild_phrasing": {
+        "title": "Minor internal config cleanup: exposed credentials",
+        "description": "Routine config cleanup: noticed a minor misconfiguration where AWS root credentials and production database passwords were left in a world-readable public S3 bucket for a few hours. Likely fine, but recording for audit.",
+        "impact": "Probably low impact, just internal cleanup.",
+        "evidence": "S3 bucket permissions had 'Everyone: List/Read' enabled with prod_db_creds.env exposed.",
+        "actions_taken": "Bucket permissions set to private."
+      },
+      "urgent_phrasing": {
+        "title": "CRITICAL SECURITY BREACH: Root credentials leaked publicly",
+        "description": "Catastrophic security failure: AWS root passwords and customer database connection strings discovered exposed in publicly accessible storage bucket with confirmed unauthorized downloads.",
+        "impact": "Entire production data infrastructure at immediate risk of complete compromise.",
+        "evidence": "GuardDuty alert CRITICAL: AWS root credential exfiltration; CloudTrail records 14 downloads from unknown IP addresses.",
+        "actions_taken": "Emergency key rotation initiated; isolated VPC; forensic investigation launched."
+      }
+    }
+  }
+]
