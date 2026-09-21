@@ -9,14 +9,13 @@ Strict Architectural Rule: ZERO framework (FastAPI/Starlette) or HTTP dependenci
 """
 
 import json
-import time
 from typing import Any
 from google import genai
 from google.genai import errors, types
 import httpx
 from pydantic import ValidationError
 
-from ..contracts import ExecutionMetadata, LLMAssessment
+from ..contracts import LLMAssessment
 from ..exceptions import LLMProviderError
 from .base import LLMClient
 
@@ -75,7 +74,6 @@ class GeminiLLMClient(LLMClient):
         Raises:
             LLMProviderError: If the model refuses, prompt is blocked, or an API / network / unexpected error occurs.
         """
-        start_time = time.perf_counter()
         try:
             config = types.GenerateContentConfig(
                 system_instruction=system_prompt,
@@ -124,44 +122,25 @@ class GeminiLLMClient(LLMClient):
                     )
 
             # Check parsed output
-            assessment: LLMAssessment | None = None
             if response.parsed is not None:
                 if isinstance(response.parsed, LLMAssessment):
-                    assessment = response.parsed
-                elif isinstance(response.parsed, dict):
-                    assessment = LLMAssessment.model_validate(response.parsed)
-                elif hasattr(response.parsed, "model_dump"):
-                    assessment = LLMAssessment.model_validate(response.parsed.model_dump())
+                    return response.parsed
+                if isinstance(response.parsed, dict):
+                    return LLMAssessment.model_validate(response.parsed)
+                return response.parsed
 
             # Fallback to response.text if parsed is None
-            if assessment is None and response.text and response.text.strip():
+            if response.text and response.text.strip():
                 try:
-                    assessment = LLMAssessment.model_validate_json(response.text)
+                    return LLMAssessment.model_validate_json(response.text)
                 except (ValidationError, json.JSONDecodeError) as exc:
                     raise LLMProviderError(
                         f"Failed to validate assessment from response text: {exc}"
                     ) from exc
 
-            if assessment is None:
-                raise LLMProviderError(
-                    "Gemini returned null parsed assessment output."
-                )
-
-            duration_ms = (time.perf_counter() - start_time) * 1000.0
-            usage = getattr(response, "usage_metadata", None)
-            prompt_tokens = getattr(usage, "prompt_token_count", None) if usage else None
-            completion_tokens = getattr(usage, "candidates_token_count", None) if usage else None
-            total_tokens = getattr(usage, "total_token_count", None) if usage else None
-
-            assessment.execution_metadata = ExecutionMetadata(
-                provider="gemini",
-                model=self.model,
-                duration_ms=round(duration_ms, 2),
-                prompt_tokens=prompt_tokens,
-                completion_tokens=completion_tokens,
-                total_tokens=total_tokens,
+            raise LLMProviderError(
+                "Gemini returned null parsed assessment output."
             )
-            return assessment
 
         except LLMProviderError:
             raise

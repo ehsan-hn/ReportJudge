@@ -7,6 +7,7 @@ and domain exceptions with ZERO framework (FastAPI/Starlette) or HTTP dependenci
 from app.judgment.contracts import (
     DimensionSignal,
     LLMAssessment,
+    QualityDimensions,
     SeveritySignals,
 )
 from app.judgment.exceptions import (
@@ -72,6 +73,7 @@ __all__ = [
     "SchemaValidationError",
     "UntrustedInputError",
     "DimensionSignal",
+    "QualityDimensions",
     "SeveritySignals",
     "LLMAssessment",
     "FLOOR_DATA_LOSS_OR_BREACH_SEV1",
