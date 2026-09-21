@@ -236,9 +236,9 @@ Where dimension score $S_d \in \{0, 1, 2, 3, 4, 5\}$ and weights $W_d$ sum stric
 | **`REPRODUCIBILITY`** | **0.10** | Steps to reproduce, preconditions, environment context, trigger vectors. |
 
 #### Quality Bands
-- **`POOR`**: $0.0 \le \text{Score} < 35.0$ (Triggers automatic human review)
-- **`WEAK`**: $35.0 \le \text{Score} < 55.0$
-- **`ADEQUATE`**: $55.0 \le \text{Score} < 75.0$
+- **`POOR`**: $0.0 \le \text{Score} \lt 35.0$ (Triggers automatic human review)
+- **`WEAK`**: $35.0 \le \text{Score} \lt 55.0$
+- **`ADEQUATE`**: $55.0 \le \text{Score} \lt 75.0$
 - **`STRONG`**: $75.0 \le \text{Score} \le 100.0$
 
 ---
@@ -255,23 +255,23 @@ To resolve this, our pipeline calculates **Calibrated Confidence** via determini
 #### 1. Base Model Confidence
 Computes the arithmetic mean across the model's self-reported confidence for the 5 quality dimensions and the severity classification:
 
-$$\text{model\_conf} = \frac{1}{6} \left( \sum_{d \in \text{Dimensions}} \text{conf}_d + \text{conf}_{\text{severity}} \right)$$
+$$\text{Model Confidence} = \frac{1}{6} \left( \sum_{d \in \text{Dimensions}} \text{conf}(d) + \text{conf}(\text{severity}) \right)$$
 
 #### 2. Hard Evidence Ceiling
 The presence of concrete telemetry is the ultimate ceiling on confidence. An unverified claim without logs can never exceed $0.30$ confidence:
 
-$$\text{evidence\_ceiling} = 0.30 + (0.14 \times \text{evidence\_score})$$
+$$\text{Evidence Ceiling} = 0.30 + (0.14 \times \text{Evidence Score})$$
 
-- $\text{evidence\_score} = 0 \implies \text{evidence\_ceiling} = 0.30$
-- $\text{evidence\_score} = 3 \implies \text{evidence\_ceiling} = 0.72$
-- $\text{evidence\_score} = 5 \implies \text{evidence\_ceiling} = 1.00$
+- $\text{Evidence Score} = 0 \implies \text{Evidence Ceiling} = 0.30$
+- $\text{Evidence Score} = 3 \implies \text{Evidence Ceiling} = 0.72$
+- $\text{Evidence Score} = 5 \implies \text{Evidence Ceiling} = 1.00$
 
 #### 3. Field Coverage Factor
 Rewards reports that populate optional structured fields (`impact`, `evidence`, `actions_taken`):
 
-$$\text{coverage\_ratio} = \frac{\text{provided\_fields\_count}}{\text{total\_optional\_fields}} \quad (\text{where } \text{total\_optional\_fields} = 3)$$
+$$\text{Coverage Ratio} = \frac{\text{Provided Fields Count}}{\text{Total Optional Fields}} \quad (\text{where } \text{Total Optional Fields} = 3)$$
 
-$$\text{coverage\_factor} = 0.75 + (0.25 \times \text{coverage\_ratio})$$
+$$\text{Coverage Factor} = 0.75 + (0.25 \times \text{Coverage Ratio})$$
 
 - 0 optional fields provided $\implies 0.75$
 - 3 optional fields provided $\implies 1.00$
@@ -279,25 +279,25 @@ $$\text{coverage\_factor} = 0.75 + (0.25 \times \text{coverage\_ratio})$$
 #### 4. Missing Information Gap Penalty
 Penalizes reports for critical information gaps detected by semantic perception:
 
-$$\text{gap\_penalty} = \min(0.25,\, 0.04 \times |\text{missing\_information}|)$$
+$$\text{Gap Penalty} = \min(0.25, 0.04 \times |\text{Missing Information}|)$$
 
 Detected gap codes include `NO_MONITORING_DATA`, `IMPACT_SCOPE_UNQUANTIFIED`, `NO_ERROR_DETAILS`, `NO_REPRO_STEPS`, `AFFECTED_COMPONENT_UNKNOWN`, `NO_MITIGATION_HISTORY`, `ENVIRONMENT_UNKNOWN`, `NO_TIMELINE`.
 
 #### 5. Clamping & Confidence Banding
 The raw confidence is multiplied and bounded within $[0.05, 0.95]$:
 
-$$\text{raw\_conf} = (\text{model\_conf} \times \text{evidence\_ceiling} \times \text{coverage\_factor}) - \text{gap\_penalty}$$
+$$\text{Raw Confidence} = (\text{Model Confidence} \times \text{Evidence Ceiling} \times \text{Coverage Factor}) - \text{Gap Penalty}$$
 
-$$\text{confidence} = \text{clamp}(\text{round}(\text{raw\_conf}, 2),\, 0.05,\, 0.95)$$
+$$\text{Confidence} = \text{clamp}(\text{round}(\text{Raw Confidence}, 2), 0.05, 0.95)$$
 
-- **`LOW`**: $\text{confidence} < 0.45$
-- **`MEDIUM`**: $0.45 \le \text{confidence} < 0.70$
-- **`HIGH`**: $\text{confidence} \ge 0.70$
+- **`LOW`**: $\text{Confidence} \lt 0.45$
+- **`MEDIUM`**: $0.45 \le \text{Confidence} \lt 0.70$
+- **`HIGH`**: $\text{Confidence} \ge 0.70$
 
 #### Limiting Reason Attribution
 When confidence is degraded, the service exposes the exact bottleneck:
-- `WEAK_OR_UNVERIFIED_EVIDENCE`: Triggered when $\text{evidence\_ceiling} < 0.60$.
-- `NUMEROUS_INFORMATION_GAPS`: Triggered when $\text{gap\_penalty} \ge 0.15$.
+- `WEAK_OR_UNVERIFIED_EVIDENCE`: Triggered when $\text{Evidence Ceiling} \lt 0.60$.
+- `NUMEROUS_INFORMATION_GAPS`: Triggered when $\text{Gap Penalty} \ge 0.15$.
 
 ---
 
@@ -306,7 +306,7 @@ Baseline severity is calculated from an ordinal composite index:
 
 $$\text{Severity Index} = 0.45 \times \text{Scope} + 0.35 \times \text{Criticality} + 0.20 \times \left( \frac{\text{TimeSensitivity}}{3} \times 4 \right)$$
 
-- Baseline: $< 1.0 \implies \text{SEV4}$, $< 2.0 \implies \text{SEV3}$, $< 3.0 \implies \text{SEV2}$, $\ge 3.0 \implies \text{SEV1}$.
+- Baseline: $\lt 1.0 \implies \text{SEV4}$, $\lt 2.0 \implies \text{SEV3}$, $\lt 3.0 \implies \text{SEV2}$, $\ge 3.0 \implies \text{SEV1}$.
 
 Regardless of the baseline index, two deterministic policy floors override severity:
 1. **`FLOOR_DATA_LOSS_OR_BREACH_SEV1`**: If business criticality indicates credential exposure, unencrypted PII leakage, or active data loss (`business_criticality >= DATA_LOSS_OR_BREACH`), severity is unconditionally forced to **`SEV1`**.
@@ -316,8 +316,8 @@ Regardless of the baseline index, two deterministic policy floors override sever
 
 ### Deterministic Human Review Triggers (`requires_human_review = True`)
 An incident assessment requires human verification if **any** of the following conditions are met:
-1. Calibrated confidence is in the **`LOW`** band ($\text{confidence} < 0.45$).
-2. Report quality is in the **`POOR`** band ($\text{score} < 35.0$).
+1. Calibrated confidence is in the **`LOW`** band ($\text{Confidence} \lt 0.45$).
+2. Report quality is in the **`POOR`** band ($\text{Score} \lt 35.0$).
 3. Any policy floor was enforced (`FLOOR_DATA_LOSS_OR_BREACH_SEV1` or `FLOOR_TOTAL_OUTAGE_SEV2`).
 4. Final incident severity evaluates to **`SEV1`**.
 5. The payload was categorized as non-incident or adversarial text (`status == "not_an_incident_report"`).
@@ -333,9 +333,9 @@ The test harness runs two complementary suites:
 1. **Golden Benchmark Suite ([`eval/cases/golden.json`](eval/cases/golden.json))**: 6 canonical real-world incidents testing SEV1 credential leaks, SEV2 total outages, SEV3 partial degradation, SEV4 cosmetic glitches, vague unstructured Slack messages, and adversarial prompt injection bypass attempts.
 2. **Invariance & Monotonicity Suite ([`eval/cases/properties.json`](eval/cases/properties.json))**: Enforces metamorphic and mathematical invariants across incident variations:
    - **`monotonicity_evidence` (Confidence Monotonicity under Evidence Enrichment)**: Adding empirical telemetry (e.g., Datadog error rates, latency spikes) to an identical incident narrative must **never decrease** calibrated confidence:
-     $$\text{confidence}_{\text{telemetry}} \ge \text{confidence}_{\text{unverified}}$$
+     $$\text{Confidence}(\text{telemetry}) \ge \text{Confidence}(\text{unverified})$$
    - **`monotonicity_field_coverage` (Confidence Monotonicity under Field Coverage Expansion)**: Providing structured optional fields (`impact`, `evidence`, `actions_taken`) must **never decrease** calibrated confidence compared to a minimal title/description report:
-     $$\text{confidence}_{\text{complete}} \ge \text{confidence}_{\text{minimal}}$$
+     $$\text{Confidence}(\text{complete}) \ge \text{Confidence}(\text{minimal})$$
    - **`breach_policy_floor_invariance` (Severity Policy Floor Invariance under Phrasing Variations)**: Any incident confirming credential leakage must evaluate to SEV1 under `FLOOR_DATA_LOSS_OR_BREACH_SEV1` regardless of whether the phrasing is casual/mild (*"noticed minor config cleanup with root creds exposed"*) or alarmist/urgent (*"CRITICAL EMERGENCY BREACH"*).
 
 ### Running the Evaluation Suite
@@ -414,7 +414,7 @@ Invariance Property Pass:   100.0% (3/3)
 | Dimension | Single-Call Structured Perception (Current) | Multi-Agent Consensus / Panel of Judges |
 |:---|:---|:---|
 | **P99 Latency** | **300ms – 800ms** (single LLM round-trip) | 2,500ms – 6,000ms (multiple LLM calls + aggregation) |
-| **Token Cost** | ~\$0.0003 per evaluation (gpt-4o-mini) | ~\$0.0015 – \$0.0030 per evaluation ($5\times-10\times$ increase) |
+| **Token Cost** | `~$0.0003` per evaluation (gpt-4o-mini) | `~$0.0015 – ~$0.0030` per evaluation (5×–10× increase) |
 | **Failure Modes** | Upstream provider timeout/rate-limit | Combinatorial failure rate across $N$ parallel judges |
 | **Arithmetic Drift** | **Zero** (handled by deterministic Python) | High risk if consensus averages numbers instead of signals |
 | **Operational Fit** | **Optimal for active incident triage** where seconds matter during Sev1/Sev2 outages | Better suited for asynchronous, non-time-critical post-mortems |
@@ -425,7 +425,7 @@ Invariance Property Pass:   100.0% (3/3)
 
 1. **Redis Caching by Normalized Content Hash**:
    - Compute SHA-256 digest over normalized title, description, and telemetry.
-   - During incident storms (hundreds of duplicate alerts generated simultaneously), serve cached evaluations instantly ($<5\text{ms}$) with zero redundant LLM invocations.
+   - During incident storms (hundreds of duplicate alerts generated simultaneously), serve cached evaluations instantly ($\lt 5\text{ms}$) with zero redundant LLM invocations.
 2. **Asynchronous Ingestion Worker (Celery / Redis / ARQ)**:
    - Provide an async ingestion endpoint (`POST /api/v1/assessments/async`) returning a job ticket.
    - Decouple webhook ingress from LLM inference spikes during widespread datacenter outages.
