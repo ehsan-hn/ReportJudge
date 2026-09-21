@@ -403,6 +403,9 @@ def test_settings_default_instantiation() -> None:
     assert settings.openai_api_key is None
     assert settings.openai_model == "gpt-4o-mini"
     assert settings.openai_timeout_seconds == 30.0
+    assert settings.gemini_api_key is None
+    assert settings.gemini_model == "gemini-3.8-flash"
+    assert settings.gemini_timeout_seconds == 30.0
     assert settings.cors_origins == ["*"]
 
 
@@ -415,6 +418,9 @@ def test_settings_constructor_overrides() -> None:
         openai_api_key="sk-test-key-12345",
         openai_model="gpt-4o",
         openai_timeout_seconds=60.0,
+        gemini_api_key="gemini-key-12345",
+        gemini_model="gemini-3.8-flash",
+        gemini_timeout_seconds=45.0,
         cors_origins=["https://dashboard.internal.company.com"],
     )
     assert custom.app_name == "Custom Judgment Service"
@@ -423,6 +429,9 @@ def test_settings_constructor_overrides() -> None:
     assert custom.openai_api_key == "sk-test-key-12345"
     assert custom.openai_model == "gpt-4o"
     assert custom.openai_timeout_seconds == 60.0
+    assert custom.gemini_api_key == "gemini-key-12345"
+    assert custom.gemini_model == "gemini-3.8-flash"
+    assert custom.gemini_timeout_seconds == 45.0
     assert custom.cors_origins == ["https://dashboard.internal.company.com"]
 
 
@@ -434,6 +443,9 @@ def test_settings_environment_variable_overrides(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setenv("OPENAI_API_KEY", "sk-env-key-999")
     monkeypatch.setenv("OPENAI_MODEL", "gpt-4o")
     monkeypatch.setenv("OPENAI_TIMEOUT_SECONDS", "45.5")
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-env-key-777")
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+    monkeypatch.setenv("GEMINI_TIMEOUT_SECONDS", "50.0")
     monkeypatch.setenv("CORS_ORIGINS", "http://localhost:3000, https://app.example.com")
 
     env_settings = Settings()
@@ -443,7 +455,19 @@ def test_settings_environment_variable_overrides(monkeypatch: pytest.MonkeyPatch
     assert env_settings.openai_api_key == "sk-env-key-999"
     assert env_settings.openai_model == "gpt-4o"
     assert env_settings.openai_timeout_seconds == 45.5
+    assert env_settings.gemini_api_key == "gemini-env-key-777"
+    assert env_settings.gemini_model == "gemini-3.5-flash-lite"
+    assert env_settings.gemini_timeout_seconds == 50.0
     assert env_settings.cors_origins == ["http://localhost:3000", "https://app.example.com"]
+
+
+def test_settings_gemini_provider_environment_variable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify Settings supports GEMINI as LLM_PROVIDER."""
+    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "gemini-test-key")
+    env_settings = Settings()
+    assert env_settings.llm_provider == "gemini"
+    assert env_settings.gemini_api_key == "gemini-test-key"
 
 
 def test_settings_cors_origins_json_format(monkeypatch: pytest.MonkeyPatch) -> None:

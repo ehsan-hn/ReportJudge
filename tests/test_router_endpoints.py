@@ -265,3 +265,23 @@ def test_get_assessment_service_provider() -> None:
 
     assert isinstance(service1, AssessmentService)
     assert service1 is service2
+
+
+def test_get_assessment_service_gemini_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Verify get_assessment_service instantiates GeminiLLMClient when llm_provider is gemini."""
+    from app.config import settings
+    from app.judgment.llm.gemini_client import GeminiLLMClient
+
+    monkeypatch.setattr(settings, "llm_provider", "gemini")
+    monkeypatch.setattr(settings, "gemini_api_key", "fake-gemini-key")
+    monkeypatch.setattr(settings, "gemini_model", "gemini-3.8-flash")
+    monkeypatch.setattr(settings, "gemini_timeout_seconds", 25.0)
+
+    get_assessment_service.cache_clear()
+    try:
+        service = get_assessment_service()
+        assert isinstance(service, AssessmentService)
+        assert isinstance(service.llm_client, GeminiLLMClient)
+        assert service.llm_client.model == "gemini-3.8-flash"
+    finally:
+        get_assessment_service.cache_clear()

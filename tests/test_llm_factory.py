@@ -21,6 +21,7 @@ from app.judgment.exceptions import LLMProviderError
 from app.judgment.llm.base import LLMClient
 from app.judgment.llm.factory import get_llm_client
 from app.judgment.llm.fake_client import FakeLLMClient
+from app.judgment.llm.gemini_client import GeminiLLMClient
 from app.judgment.llm.openai_client import OpenAILLMClient
 from app.judgment.rubric import QualityDimension
 
@@ -112,9 +113,52 @@ class TestLLMFactory:
         """Factory raises ValueError for unknown provider."""
         with pytest.raises(
             ValueError,
-            match=r"Unsupported LLM provider: 'anthropic_unsupported'\. Supported: \['fake', 'openai'\]",
+            match=r"Unsupported LLM provider: 'anthropic_unsupported'\. Supported: \['fake', 'openai', 'gemini'\]",
         ):
             get_llm_client(provider="anthropic_unsupported")
+
+    def test_factory_gemini_missing_api_key_raises_value_error(self) -> None:
+        """Factory raises ValueError if provider is 'gemini' but api_key is None or empty."""
+        for invalid_key in [None, "", "   "]:
+            with pytest.raises(
+                ValueError,
+                match="GEMINI_API_KEY is required when LLM_PROVIDER is 'gemini'",
+            ):
+                get_llm_client(provider="gemini", api_key=invalid_key)
+
+    def test_factory_gemini_missing_api_key_case_insensitive(self) -> None:
+        """Factory validates missing api_key regardless of gemini provider casing."""
+        with pytest.raises(
+            ValueError,
+            match="GEMINI_API_KEY is required when LLM_PROVIDER is 'gemini'",
+        ):
+            get_llm_client(provider="GEMINI", api_key=None)
+
+    def test_factory_gemini_success(self) -> None:
+        """Factory creates GeminiLLMClient with provided arguments."""
+        client = get_llm_client(
+            provider="gemini",
+            api_key="gemini-test-key",
+            model="gemini-3.8-flash",
+            temperature=0.2,
+            timeout_seconds=40.0,
+        )
+        assert isinstance(client, GeminiLLMClient)
+        assert isinstance(client, LLMClient)
+        assert client.model == "gemini-3.8-flash"
+        assert client.temperature == 0.2
+        assert client.timeout_seconds == 40.0
+
+    def test_factory_gemini_default_model(self) -> None:
+        """Factory defaults to 'gemini-3.8-flash' if model is not provided or defaulted."""
+        client = get_llm_client(provider="gemini", api_key="gemini-test-key")
+        assert isinstance(client, GeminiLLMClient)
+        assert client.model == "gemini-3.8-flash"
+
+    def test_factory_gemini_case_insensitive(self) -> None:
+        """Factory creates GeminiLLMClient for upper/mixed case provider string."""
+        client = get_llm_client(provider="Gemini", api_key="gemini-test-key")
+        assert isinstance(client, GeminiLLMClient)
 
     def test_factory_openai_success(self) -> None:
         """Factory creates OpenAILLMClient with provided arguments."""

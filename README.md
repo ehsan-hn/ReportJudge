@@ -159,7 +159,17 @@ export OPENAI_MODEL="gpt-4o-mini"
 uvicorn app.main:app --reload
 ```
 
-### 5. Docker Build and Run
+### 5. Switching to Google Gemini
+To switch from offline simulation to live Google Gemini inference (`gemini-3.8-flash` by default):
+
+```bash
+export LLM_PROVIDER=gemini
+export GEMINI_API_KEY="your-gemini-api-key"
+export GEMINI_MODEL="gemini-3.8-flash"
+uvicorn app.main:app --reload
+```
+
+### 6. Docker Build and Run
 The application is fully containerized using a hardened `python:3.11-slim` base image with non-root security:
 
 ```bash

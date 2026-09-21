@@ -57,10 +57,13 @@ class Settings(BaseSettings):
 
     app_name: str = "AI Incident Judgment & Scoring Service"
     environment: str = "development"
-    llm_provider: str = "fake"  # options: "fake", "openai"
+    llm_provider: str = "fake"  # options: "fake", "openai", "gemini"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
     openai_timeout_seconds: float = 30.0
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-3.8-flash"
+    gemini_timeout_seconds: float = 30.0
     cors_origins: list[str] = ["*"]
 
     @field_validator("llm_provider")
@@ -68,9 +71,9 @@ class Settings(BaseSettings):
     def validate_llm_provider(cls, v: str) -> str:
         """Validate that llm_provider is one of the supported options."""
         cleaned = v.strip().lower()
-        if cleaned not in {"fake", "openai"}:
+        if cleaned not in {"fake", "openai", "gemini"}:
             raise ValueError(
-                f"Invalid llm_provider: '{v}'. Supported options: 'fake', 'openai'"
+                f"Invalid llm_provider: '{v}'. Supported options: 'fake', 'openai', 'gemini'"
             )
         return cleaned
 
